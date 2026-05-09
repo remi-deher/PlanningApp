@@ -8,6 +8,8 @@ targets:
     deploymentTarget: "16.0"
     sources:
       - path: PlanningApp
+    info:
+      path: PlanningApp/Info.plist
     settings:
       CODE_SIGNING_REQUIRED: NO
       CODE_SIGN_IDENTITY: ""

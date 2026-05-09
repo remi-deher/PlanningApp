@@ -138,7 +138,7 @@ struct ChatView: View {
     }
     
     func getAvailableSpeakers() -> [Collaborator] {
-        if let team = team {
+        if team != nil {
             // Tous les membres de l'équipe (ou tous les collaborateurs pour la démo)
             return appData.collaborators
         } else if let c1 = collaborator1, let c2 = collaborator2 {
@@ -175,7 +175,6 @@ struct ChatView: View {
     }
 }
 
-// Pour la prévisualisation, on adapte
 struct ChatView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
