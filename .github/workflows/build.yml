@@ -29,9 +29,18 @@ jobs:
                    -sdk iphoneos \
                    clean build \
                    SYMROOT=build \
+                   INFOPLIST_FILE=PlanningApp/Info.plist \
                    CODE_SIGNING_ALLOWED=NO \
                    CODE_SIGNING_REQUIRED=NO \
                    CODE_SIGN_IDENTITY=""
+      working-directory: .
+
+    - name: Debug Info.plist
+      run: |
+        echo "Checking Info.plist content:"
+        file build/Release-iphoneos/PlanningApp.app/Info.plist
+        # Try to read it as text, if it's binary it will show garbage but we might see if it starts with HTML
+        head -n 5 build/Release-iphoneos/PlanningApp.app/Info.plist
       working-directory: .
 
     - name: Package IPA
