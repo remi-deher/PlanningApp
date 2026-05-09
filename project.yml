@@ -1,6 +1,6 @@
 name: PlanningApp
 options:
-  bundleIdPrefix: com.demo
+  bundleIdPrefix: com.remi2.planning
 targets:
   PlanningApp:
     type: application
