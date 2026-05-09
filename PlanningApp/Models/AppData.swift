@@ -11,7 +11,7 @@ class AppData: ObservableObject {
         self.teams = Team.mockTeams
         self.collaborators = Collaborator.mockCollaborators(teams: teams)
         self.schedules = Schedule.mockSchedules(collaborators: collaborators)
-        self.messages = Message.mockMessages(collaborators: collaborators)
+        self.messages = Message.mockMessages(collaborators: collaborators, teams: teams)
     }
     
     func addTeam(_ team: Team) {
