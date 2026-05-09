@@ -23,6 +23,13 @@ struct ContentView: View {
             .tabItem {
                 Label("Équipes", systemImage: "person.3.fill")
             }
+            
+            NavigationView {
+                SettingsView()
+            }
+            .tabItem {
+                Label("Paramètres", systemImage: "gearshape.fill")
+            }
         }
     }
 }
@@ -30,5 +37,6 @@ struct ContentView: View {
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
+            .environmentObject(AppData())
     }
 }

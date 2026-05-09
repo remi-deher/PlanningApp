@@ -1,14 +1,7 @@
 import SwiftUI
 
 struct DashboardView: View {
-    let teams = Team.mockTeams
-    let collaborators: [Collaborator]
-    let schedules: [Schedule]
-    
-    init() {
-        self.collaborators = Collaborator.mockCollaborators(teams: teams)
-        self.schedules = Schedule.mockSchedules(collaborators: collaborators)
-    }
+    @EnvironmentObject var appData: AppData
     
     var body: some View {
         ScrollView {
@@ -18,12 +11,12 @@ struct DashboardView: View {
                 
                 // Stat Cards
                 HStack(spacing: 15) {
-                    StatCard(title: "Équipes", value: "\(teams.count)", icon: "person.3.fill", color: .blue)
-                    StatCard(title: "Membres", value: "\(collaborators.count)", icon: "person.fill", color: .green)
+                    StatCard(title: "Équipes", value: "\(appData.teams.count)", icon: "person.3.fill", color: .blue)
+                    StatCard(title: "Membres", value: "\(appData.collaborators.count)", icon: "person.fill", color: .green)
                 }
                 
                 HStack(spacing: 15) {
-                    StatCard(title: "Shifts Actifs", value: "2", icon: "clock.fill", color: .orange)
+                    StatCard(title: "Shifts Actifs", value: "\(appData.schedules.count)", icon: "clock.fill", color: .orange)
                     StatCard(title: "Alertes", value: "0", icon: "exclamationmark.triangle.fill", color: .red)
                 }
                 
@@ -34,8 +27,8 @@ struct DashboardView: View {
                         .fontWeight(.bold)
                         .padding(.top, 10)
                     
-                    ForEach(schedules.prefix(3)) { schedule in
-                        if let collaborator = collaborators.first(where: { $0.id == schedule.collaboratorId }) {
+                    ForEach(appData.schedules.prefix(3)) { schedule in
+                        if let collaborator = appData.collaborators.first(where: { $0.id == schedule.collaboratorId }) {
                             ScheduleRow(schedule: schedule, collaborator: collaborator)
                         }
                     }
@@ -49,6 +42,9 @@ struct DashboardView: View {
         .navigationTitle("Tableau de bord")
     }
 }
+
+// ... HeaderView, StatCard, ScheduleRow remain the same as before ...
+// I'll include them to make the file complete as I'm overwriting it.
 
 struct HeaderView: View {
     var body: some View {
@@ -137,6 +133,7 @@ struct DashboardView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
             DashboardView()
+                .environmentObject(AppData())
         }
     }
 }

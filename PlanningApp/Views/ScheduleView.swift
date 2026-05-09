@@ -1,19 +1,12 @@
 import SwiftUI
 
 struct ScheduleView: View {
-    let teams = Team.mockTeams
-    let collaborators: [Collaborator]
-    let schedules: [Schedule]
-    
-    init() {
-        self.collaborators = Collaborator.mockCollaborators(teams: teams)
-        self.schedules = Schedule.mockSchedules(collaborators: collaborators)
-    }
+    @EnvironmentObject var appData: AppData
     
     var body: some View {
         List {
-            ForEach(schedules) { schedule in
-                if let collaborator = collaborators.first(where: { $0.id == schedule.collaboratorId }) {
+            ForEach(appData.schedules) { schedule in
+                if let collaborator = appData.collaborators.first(where: { $0.id == schedule.collaboratorId }) {
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
                             Text(collaborator.fullName)
@@ -47,13 +40,6 @@ struct ScheduleView: View {
             }
         }
         .navigationTitle("Planning")
-        .toolbar {
-            Button(action: {
-                // Action pour ajouter un shift
-            }) {
-                Image(systemName: "calendar.badge.plus")
-            }
-        }
     }
     
     func formatDate(_ date: Date) -> String {
@@ -73,6 +59,7 @@ struct ScheduleView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
             ScheduleView()
+                .environmentObject(AppData())
         }
     }
 }

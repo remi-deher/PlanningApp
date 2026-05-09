@@ -1,11 +1,11 @@
 import SwiftUI
 
 struct TeamListView: View {
-    let teams = Team.mockTeams
+    @EnvironmentObject var appData: AppData
     
     var body: some View {
         List {
-            ForEach(teams) { team in
+            ForEach(appData.teams) { team in
                 HStack(spacing: 15) {
                     Image(systemName: team.icon)
                         .foregroundColor(.white)
@@ -31,13 +31,6 @@ struct TeamListView: View {
             }
         }
         .navigationTitle("Équipes")
-        .toolbar {
-            Button(action: {
-                // Action pour ajouter une équipe
-            }) {
-                Image(systemName: "plus")
-            }
-        }
     }
 }
 
@@ -45,6 +38,7 @@ struct TeamListView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
             TeamListView()
+                .environmentObject(AppData())
         }
     }
 }
