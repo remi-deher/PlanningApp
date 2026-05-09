@@ -35,12 +35,11 @@ jobs:
                    CODE_SIGN_IDENTITY=""
       working-directory: .
 
-    - name: Debug Info.plist
+    - name: Verify UIRequiresFullScreen in built IPA
       run: |
-        echo "Checking Info.plist content:"
-        file build/Release-iphoneos/PlanningApp.app/Info.plist
-        # Try to read it as text, if it's binary it will show garbage but we might see if it starts with HTML
-        head -n 5 build/Release-iphoneos/PlanningApp.app/Info.plist
+        echo "=== Checking Info.plist in built .app ==="
+        plutil -p build/Release-iphoneos/PlanningApp.app/Info.plist | grep -i "UIRequiresFullScreen" && echo "✅ UIRequiresFullScreen is PRESENT" || echo "❌ UIRequiresFullScreen is MISSING"
+        plutil -p build/Release-iphoneos/PlanningApp.app/Info.plist | grep -i "UILaunchScreen" && echo "✅ UILaunchScreen is PRESENT" || echo "❌ UILaunchScreen is MISSING"
       working-directory: .
 
     - name: Package IPA
