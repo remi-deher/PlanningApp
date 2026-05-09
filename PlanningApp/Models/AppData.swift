@@ -4,12 +4,14 @@ class AppData: ObservableObject {
     @Published var teams: [Team] = []
     @Published var collaborators: [Collaborator] = []
     @Published var schedules: [Schedule] = []
+    @Published var messages: [Message] = []
     
     init() {
         // Initialisation avec les données mockées existantes
         self.teams = Team.mockTeams
         self.collaborators = Collaborator.mockCollaborators(teams: teams)
         self.schedules = Schedule.mockSchedules(collaborators: collaborators)
+        self.messages = Message.mockMessages(collaborators: collaborators)
     }
     
     func addTeam(_ team: Team) {
@@ -22,5 +24,9 @@ class AppData: ObservableObject {
     
     func addSchedule(_ schedule: Schedule) {
         schedules.append(schedule)
+    }
+    
+    func addMessage(_ message: Message) {
+        messages.append(message)
     }
 }

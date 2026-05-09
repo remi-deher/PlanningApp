@@ -18,6 +18,13 @@ struct ContentView: View {
             }
             
             NavigationView {
+                MessagesListView()
+            }
+            .tabItem {
+                Label("Messages", systemImage: "message.fill")
+            }
+            
+            NavigationView {
                 TeamListView()
             }
             .tabItem {

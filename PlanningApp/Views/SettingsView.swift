@@ -17,6 +17,12 @@ struct SettingsView: View {
                 }
             }
             
+            Section(header: Text("Simulation")) {
+                NavigationLink(destination: AddMessageView()) {
+                    Label("Simuler un message", systemImage: "message.badge.filled.fill")
+                }
+            }
+            
             Section(header: Text("Application")) {
                 HStack {
                     Text("Version")
