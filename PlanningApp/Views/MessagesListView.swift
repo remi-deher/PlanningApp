@@ -12,7 +12,7 @@ struct MessagesListView: View {
                     .textFieldStyle(PlainTextFieldStyle())
             }
             .padding()
-            .background(Color(.secondarySystemGroupedBackground))
+            .background(.ultraThinMaterial)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .padding()
             
@@ -121,9 +121,7 @@ struct ConversationRow: View {
             }
         }
         .padding()
-        .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: Color.black.opacity(0.02), radius: 5, x: 0, y: 2)
+        .glassCard()
     }
     
     func formatDate(_ date: Date) -> String {

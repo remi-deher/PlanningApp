@@ -17,7 +17,7 @@ struct ScheduleView: View {
                 }
                 .padding()
             }
-            .background(Color(.secondarySystemGroupedBackground))
+            .background(.ultraThinMaterial)
             
             ScrollView {
                 LazyVStack(spacing: 15) {
@@ -58,9 +58,10 @@ struct DateCard: View {
                 .foregroundColor(isSelected ? .white : .primary)
         }
         .frame(width: 55, height: 70)
-        .background(isSelected ?
-            LinearGradient(colors: [.blue, .purple], startPoint: .top, endPoint: .bottom) :
-            LinearGradient(colors: [Color(.systemBackground)], startPoint: .top, endPoint: .bottom)
+        .background(
+            isSelected ?
+            AnyShapeStyle(LinearGradient(colors: [.blue, .purple], startPoint: .top, endPoint: .bottom)) :
+            AnyShapeStyle(Color(.systemBackground))
         )
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(color: Color.black.opacity(isSelected ? 0.15 : 0.02), radius: 5, x: 0, y: 3)
@@ -96,7 +97,7 @@ struct ScheduleCard: View {
                     Text(formatDate(schedule.startTime))
                         .font(.caption2).foregroundColor(.secondary)
                         .padding(.horizontal, 8).padding(.vertical, 4)
-                        .background(Color(.systemBackground))
+                        .background(Color(.systemBackground).opacity(0.6))
                         .clipShape(Capsule())
                 }
                 HStack {
@@ -114,18 +115,16 @@ struct ScheduleCard: View {
             }
             .padding()
         }
-        .background(Color(.secondarySystemGroupedBackground))
+        .glassCard()
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: Color.black.opacity(0.03), radius: 5, x: 0, y: 2)
     }
     
     func formatDate(_ date: Date) -> String {
-        let f = DateFormatter(); f.dateFormat = "dd MMM"
-        return f.string(from: date)
+        let f = DateFormatter(); f.dateFormat = "dd MMM"; return f.string(from: date)
     }
     func formatTime(_ date: Date) -> String {
-        let f = DateFormatter(); f.dateFormat = "HH:mm"
-        return f.string(from: date)
+        let f = DateFormatter(); f.dateFormat = "HH:mm"; return f.string(from: date)
     }
 }
 

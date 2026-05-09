@@ -40,7 +40,7 @@ struct ChatView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 8)
-            .background(Color.orange.opacity(0.1))
+            .background(.ultraThinMaterial)
             
             // Messages
             ScrollViewReader { proxy in
@@ -111,7 +111,7 @@ struct ChatView: View {
                 }
                 .padding(.horizontal).padding(.vertical, 10)
             }
-            .background(Color(.secondarySystemGroupedBackground))
+            .background(.ultraThinMaterial)
         }
         .navigationTitle(team?.name ?? collaborator2?.fullName ?? "Chat")
         .navigationBarTitleDisplayMode(.inline)

@@ -9,12 +9,12 @@ struct DashboardView: View {
             VStack(alignment: .leading, spacing: 25) {
                 HeaderView()
                 
-                // Stat Cards
+                // Stat Cards — Liquid Glass on iOS 26, gradient on older
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 15) {
-                    StatCard(title: "Équipes", value: "\(appData.teams.count)", icon: "person.3.fill", gradient: LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
-                    StatCard(title: "Membres", value: "\(appData.collaborators.count)", icon: "person.fill", gradient: LinearGradient(colors: [.green, .mint], startPoint: .topLeading, endPoint: .bottomTrailing))
-                    StatCard(title: "Shifts Actifs", value: "\(appData.schedules.count)", icon: "clock.fill", gradient: LinearGradient(colors: [.orange, .red], startPoint: .topLeading, endPoint: .bottomTrailing))
-                    StatCard(title: "Alertes", value: "0", icon: "bell.fill", gradient: LinearGradient(colors: [.pink, .red], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    StatCard(title: "Équipes", value: "\(appData.teams.count)", icon: "person.3.fill", accent: .blue)
+                    StatCard(title: "Membres", value: "\(appData.collaborators.count)", icon: "person.fill", accent: .green)
+                    StatCard(title: "Shifts Actifs", value: "\(appData.schedules.count)", icon: "clock.fill", accent: .orange)
+                    StatCard(title: "Alertes", value: "0", icon: "bell.fill", accent: .pink)
                 }
                 
                 // Chart
@@ -35,9 +35,7 @@ struct DashboardView: View {
                     }
                     .frame(height: 200)
                     .padding()
-                    .background(Color(.secondarySystemGroupedBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
+                    .glassCard()
                 }
                 
                 // Recent Schedules
@@ -99,38 +97,41 @@ struct HeaderView: View {
     }
 }
 
+// MARK: - StatCard with Liquid Glass (iOS 26) / Gradient (iOS 18)
+
 struct StatCard: View {
     let title: String
     let value: String
     let icon: String
-    let gradient: LinearGradient
+    let accent: Color
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: icon)
-                    .foregroundColor(.white)
+                    .foregroundColor(accent)
                     .font(.title2)
                     .padding(8)
-                    .background(Circle().fill(Color.white.opacity(0.2)))
+                    .background(Circle().fill(accent.opacity(0.15)))
                 Spacer()
             }
             Spacer()
             Text(value)
                 .font(.system(size: 32, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
+                .foregroundStyle(accent)
             Text(title)
                 .font(.caption)
                 .fontWeight(.medium)
-                .foregroundColor(.white.opacity(0.8))
+                .foregroundColor(.secondary)
         }
         .padding()
         .frame(height: 140)
-        .background(gradient)
-        .clipShape(RoundedRectangle(cornerRadius: 20))
-        .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+        .frame(maxWidth: .infinity)
+        .glassCard()
     }
 }
+
+// MARK: - ScheduleRow
 
 struct ScheduleRow: View {
     let schedule: Schedule
@@ -141,10 +142,7 @@ struct ScheduleRow: View {
             Circle()
                 .fill(Color.blue.opacity(0.1))
                 .frame(width: 40, height: 40)
-                .overlay(
-                    Image(systemName: "person.fill")
-                        .foregroundColor(.blue)
-                )
+                .overlay(Image(systemName: "person.fill").foregroundColor(.blue))
             VStack(alignment: .leading, spacing: 4) {
                 Text(collaborator.fullName).fontWeight(.semibold)
                 Text(collaborator.role).font(.caption).foregroundColor(.secondary)
@@ -154,26 +152,20 @@ struct ScheduleRow: View {
                 Text(formatTime(schedule.startTime)).fontWeight(.bold)
                 Text(formatTime(schedule.endTime)).font(.caption).foregroundColor(.secondary)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
+            .padding(.horizontal, 10).padding(.vertical, 5)
             .background(Color.blue.opacity(0.05))
             .clipShape(RoundedRectangle(cornerRadius: 8))
         }
         .padding()
-        .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .glassCard()
     }
     
     func formatTime(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        return formatter.string(from: date)
+        let f = DateFormatter(); f.dateFormat = "HH:mm"; return f.string(from: date)
     }
 }
 
 #Preview {
-    NavigationStack {
-        DashboardView()
-    }
-    .environment(AppData())
+    NavigationStack { DashboardView() }
+        .environment(AppData())
 }

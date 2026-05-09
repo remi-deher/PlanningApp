@@ -9,10 +9,30 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-15
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Select latest Xcode
+      run: |
+        echo "=== Available Xcode versions ==="
+        ls /Applications/ | grep Xcode
+        # Prefer Xcode 17+ (iOS 26 SDK) for Liquid Glass support
+        if [ -d "/Applications/Xcode_17.4.app" ]; then
+          sudo xcode-select -s /Applications/Xcode_17.4.app
+        elif [ -d "/Applications/Xcode_17.3.app" ]; then
+          sudo xcode-select -s /Applications/Xcode_17.3.app
+        elif [ -d "/Applications/Xcode_17.2.app" ]; then
+          sudo xcode-select -s /Applications/Xcode_17.2.app
+        elif [ -d "/Applications/Xcode_17.1.app" ]; then
+          sudo xcode-select -s /Applications/Xcode_17.1.app
+        elif [ -d "/Applications/Xcode_17.0.app" ]; then
+          sudo xcode-select -s /Applications/Xcode_17.0.app
+        else
+          echo "Xcode 17 not found, using default"
+        fi
+        xcodebuild -version
 
     - name: Install XcodeGen
       run: brew install xcodegen
@@ -21,12 +41,16 @@ jobs:
       run: xcodegen generate
       working-directory: .
 
-    - name: Build App
+    - name: Detect SDK and build
       run: |
+        # Detect available iOS SDK version
+        SDK=$(xcodebuild -showsdks | grep iphoneos | tail -1 | awk '{print $NF}')
+        echo "Using SDK: $SDK"
+
         xcodebuild -project PlanningApp.xcodeproj \
                    -scheme PlanningApp \
                    -configuration Release \
-                   -sdk iphoneos \
+                   -sdk $SDK \
                    clean build \
                    SYMROOT=build \
                    INFOPLIST_FILE=PlanningApp/Info.plist \
@@ -35,17 +59,19 @@ jobs:
                    CODE_SIGN_IDENTITY=""
       working-directory: .
 
-    - name: Verify UIRequiresFullScreen in built IPA
+    - name: Verify Info.plist keys
       run: |
-        echo "=== Checking Info.plist in built .app ==="
-        plutil -p build/Release-iphoneos/PlanningApp.app/Info.plist | grep -i "UIRequiresFullScreen" && echo "✅ UIRequiresFullScreen is PRESENT" || echo "❌ UIRequiresFullScreen is MISSING"
-        plutil -p build/Release-iphoneos/PlanningApp.app/Info.plist | grep -i "UILaunchScreen" && echo "✅ UILaunchScreen is PRESENT" || echo "❌ UILaunchScreen is MISSING"
+        APP_PATH=$(find build -name "PlanningApp.app" -type d | head -1)
+        echo "=== App found at: $APP_PATH ==="
+        plutil -p "$APP_PATH/Info.plist" | grep -E "UIRequiresFullScreen|UILaunchScreen|MinimumOSVersion|DTSDKName" || true
       working-directory: .
 
     - name: Package IPA
       run: |
+        APP_PATH=$(find build -name "PlanningApp.app" -type d | head -1)
+        APP_DIR=$(dirname "$APP_PATH")
         mkdir -p build/Payload
-        cp -r build/Release-iphoneos/PlanningApp.app build/Payload/
+        cp -r "$APP_PATH" build/Payload/
         cd build
         zip -r PlanningApp.ipa Payload
       working-directory: .
