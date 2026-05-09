@@ -1,0 +1,48 @@
+name: Build Unsigned IPA
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install XcodeGen
+      run: brew install xcodegen
+
+    - name: Generate Xcode Project
+      run: xcodegen generate
+      working-directory: .
+
+    - name: Build App
+      run: |
+        xcodebuild -project PlanningApp.xcodeproj \
+                   -scheme PlanningApp \
+                   -configuration Release \
+                   -sdk iphoneos \
+                   clean build \
+                   CODE_SIGNING_ALLOWED=NO \
+                   CODE_SIGNING_REQUIRED=NO \
+                   CODE_SIGN_IDENTITY=""
+      working-directory: .
+
+    - name: Package IPA
+      run: |
+        mkdir -p build/Payload
+        cp -r build/Release-iphoneos/PlanningApp.app build/Payload/
+        cd build
+        zip -r PlanningApp.ipa Payload
+      working-directory: .
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: PlanningApp-Unsigned
+        path: build/PlanningApp.ipa
