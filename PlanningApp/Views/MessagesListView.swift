@@ -2,46 +2,53 @@ import SwiftUI
 
 struct MessagesListView: View {
     @EnvironmentObject var appData: AppData
+    @State private var searchText = ""
     
     var body: some View {
-        List {
-            let conversations = getConversations()
+        VStack(spacing: 0) {
+            // Search Bar
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.secondary)
+                TextField("Rechercher une conversation...", text: $searchText)
+                    .textFieldStyle(PlainTextFieldStyle())
+            }
+            .padding()
+            .background(Color(.secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding()
             
-            ForEach(conversations, id: \.id) { conv in
-                NavigationLink(destination: destinationView(for: conv)) {
-                    HStack(spacing: 15) {
-                        Image(systemName: conv.icon)
-                            .resizable()
-                            .frame(width: 30, height: 30)
-                            .padding(5)
-                            .background(conv.isTeam ? Color.accentColor.opacity(0.1) : Color.clear)
-                            .clipShape(Circle())
-                            .foregroundColor(conv.isTeam ? .accentColor : .secondary)
-                        
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text(conv.title)
-                                .fontWeight(.semibold)
-                            
-                            if let lastMessage = conv.lastMessage {
-                                Text(lastMessage.content)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                    .lineLimit(1)
-                            }
-                        }
-                        
-                        Spacer()
-                        
-                        if let lastMessage = conv.lastMessage {
-                            Text(formatDate(lastMessage.timestamp))
-                                .font(.caption2)
+            // Conversations List
+            ScrollView {
+                LazyVStack(spacing: 12) {
+                    let conversations = getFilteredConversations()
+                    
+                    if conversations.isEmpty {
+                        VStack(spacing: 15) {
+                            Image(systemName: "message.fill")
+                                .font(.system(size: 50))
+                                .foregroundColor(.secondary.opacity(0.5))
+                                .padding(.top, 50)
+                            Text("Aucune conversation")
+                                .font(.headline)
                                 .foregroundColor(.secondary)
+                            Text("Les messages apparaîtront ici.")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary.opacity(0.8))
+                        }
+                    } else {
+                        ForEach(conversations, id: \.id) { conv in
+                            NavigationLink(destination: destinationView(for: conv)) {
+                                ConversationRow(conv: conv)
+                            }
+                            .buttonStyle(PlainButtonStyle())
                         }
                     }
-                    .padding(.vertical, 5)
                 }
+                .padding(.horizontal)
             }
         }
+        .background(Color(.systemGroupedBackground))
         .navigationTitle("Messages")
     }
     
@@ -66,6 +73,15 @@ struct MessagesListView: View {
         let user1: Collaborator?
         let user2: Collaborator?
         let team: Team?
+        let color: Color
+    }
+    
+    func getFilteredConversations() -> [Conversation] {
+        let all = getConversations()
+        if searchText.isEmpty {
+            return all
+        }
+        return all.filter { $0.title.localizedCaseInsensitiveContains(searchText) }
     }
     
     func getConversations() -> [Conversation] {
@@ -77,10 +93,10 @@ struct MessagesListView: View {
                 let key = teamId.uuidString
                 if let existing = conversations[key] {
                     if let existingMsg = existing.lastMessage, message.timestamp > existingMsg.timestamp {
-                        conversations[key] = Conversation(id: key, title: "[Équipe] \(team.name)", icon: "person.3.fill", lastMessage: message, isTeam: true, user1: nil, user2: nil, team: team)
+                        conversations[key] = Conversation(id: key, title: team.name, icon: "person.3.fill", lastMessage: message, isTeam: true, user1: nil, user2: nil, team: team, color: .blue)
                     }
                 } else {
-                    conversations[key] = Conversation(id: key, title: "[Équipe] \(team.name)", icon: "person.3.fill", lastMessage: message, isTeam: true, user1: nil, user2: nil, team: team)
+                    conversations[key] = Conversation(id: key, title: team.name, icon: "person.3.fill", lastMessage: message, isTeam: true, user1: nil, user2: nil, team: team, color: .blue)
                 }
             } else if let receiverId = message.receiverId,
                       let user1 = appData.collaborators.first(where: { $0.id == message.senderId }),
@@ -89,22 +105,85 @@ struct MessagesListView: View {
                 let ids = [user1.id.uuidString, user2.id.uuidString].sorted()
                 let key = ids.joined(separator: "-")
                 
+                // Determine title based on who is who (for simplicity, just show both names)
+                let title = "\(user1.fullName) & \(user2.fullName)"
+                
                 if let existing = conversations[key] {
                     if let existingMsg = existing.lastMessage, message.timestamp > existingMsg.timestamp {
-                        conversations[key] = Conversation(id: key, title: "\(user1.fullName) & \(user2.fullName)", icon: "person.circle.fill", lastMessage: message, isTeam: false, user1: user1, user2: user2, team: nil)
+                        conversations[key] = Conversation(id: key, title: title, icon: "person.fill", lastMessage: message, isTeam: false, user1: user1, user2: user2, team: nil, color: .orange)
                     }
                 } else {
-                    conversations[key] = Conversation(id: key, title: "\(user1.fullName) & \(user2.fullName)", icon: "person.circle.fill", lastMessage: message, isTeam: false, user1: user1, user2: user2, team: nil)
+                    conversations[key] = Conversation(id: key, title: title, icon: "person.fill", lastMessage: message, isTeam: false, user1: user1, user2: user2, team: nil, color: .orange)
                 }
             }
         }
         
         return Array(conversations.values).sorted { ($0.lastMessage?.timestamp ?? Date()) > ($1.lastMessage?.timestamp ?? Date()) }
     }
+}
+
+struct ConversationRow: View {
+    let conv: MessagesListView.Conversation
+    
+    var body: some View {
+        HStack(spacing: 15) {
+            // Avatar
+            Circle()
+                .fill(conv.color.opacity(0.1))
+                .frame(width: 50, height: 50)
+                .overlay(
+                    Image(systemName: conv.icon)
+                        .foregroundColor(conv.color)
+                        .font(.title3)
+                )
+            
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(conv.title)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+                    
+                    if conv.isTeam {
+                        Text("Équipe")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.blue)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.blue.opacity(0.1))
+                            .clipShape(Capsule())
+                    }
+                    
+                    Spacer()
+                    
+                    if let lastMessage = conv.lastMessage {
+                        Text(formatDate(lastMessage.timestamp))
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                if let lastMessage = conv.lastMessage {
+                    Text(lastMessage.content)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
+                }
+            }
+        }
+        .padding()
+        .background(Color(.secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .shadow(color: Color.black.opacity(0.02), radius: 5, x: 0, y: 2)
+    }
     
     func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
+        if Calendar.current.isDateInToday(date) {
+            formatter.dateFormat = "HH:mm"
+        } else {
+            formatter.dateFormat = "dd/MM"
+        }
         return formatter.string(from: date)
     }
 }

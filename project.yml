@@ -9,7 +9,11 @@ targets:
     sources:
       - path: PlanningApp
     info:
-      path: PlanningApp/Info.plist
+      dict:
+        UILaunchScreen: {}
+        CFBundleDevelopmentRegion: fr
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
     settings:
       CODE_SIGNING_REQUIRED: NO
       CODE_SIGN_IDENTITY: ""

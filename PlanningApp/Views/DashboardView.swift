@@ -1,35 +1,67 @@
 import SwiftUI
+import Charts
 
 struct DashboardView: View {
     @EnvironmentObject var appData: AppData
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 25) {
                 // Header
                 HeaderView()
                 
                 // Stat Cards
-                HStack(spacing: 15) {
-                    StatCard(title: "Équipes", value: "\(appData.teams.count)", icon: "person.3.fill", color: .blue)
-                    StatCard(title: "Membres", value: "\(appData.collaborators.count)", icon: "person.fill", color: .green)
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 15) {
+                    StatCard(title: "Équipes", value: "\(appData.teams.count)", icon: "person.3.fill", gradient: LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    
+                    StatCard(title: "Membres", value: "\(appData.collaborators.count)", icon: "person.fill", gradient: LinearGradient(colors: [.green, .mint], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    
+                    StatCard(title: "Shifts Actifs", value: "\(appData.schedules.count)", icon: "clock.fill", gradient: LinearGradient(colors: [.orange, .red], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    
+                    StatCard(title: "Alertes", value: "0", icon: "bell.fill", gradient: LinearGradient(colors: [.pink, .red], startPoint: .topLeading, endPoint: .bottomTrailing))
                 }
                 
-                HStack(spacing: 15) {
-                    StatCard(title: "Shifts Actifs", value: "\(appData.schedules.count)", icon: "clock.fill", color: .orange)
-                    StatCard(title: "Alertes", value: "0", icon: "exclamationmark.triangle.fill", color: .red)
+                // Chart Section
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Répartition par Rôle")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                    
+                    Chart {
+                        ForEach(getRoleData(), id: \.role) { item in
+                            BarMark(
+                                x: .value("Rôle", item.role),
+                                y: .value("Nombre", item.count)
+                            )
+                            .foregroundStyle(by: .value("Rôle", item.role))
+                            .cornerRadius(5)
+                        }
+                    }
+                    .frame(height: 200)
+                    .padding()
+                    .background(Color(.secondarySystemGroupedBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
                 }
                 
                 // Recent Schedules
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 12) {
                     Text("Aujourd'hui")
-                        .font(.title2)
+                        .font(.title3)
                         .fontWeight(.bold)
-                        .padding(.top, 10)
                     
-                    ForEach(appData.schedules.prefix(3)) { schedule in
-                        if let collaborator = appData.collaborators.first(where: { $0.id == schedule.collaboratorId }) {
-                            ScheduleRow(schedule: schedule, collaborator: collaborator)
+                    if appData.schedules.isEmpty {
+                        Text("Aucun shift prévu aujourd'hui")
+                            .foregroundColor(.secondary)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color(.secondarySystemGroupedBackground))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    } else {
+                        ForEach(appData.schedules.prefix(3)) { schedule in
+                            if let collaborator = appData.collaborators.first(where: { $0.id == schedule.collaboratorId }) {
+                                ScheduleRow(schedule: schedule, collaborator: collaborator)
+                            }
                         }
                     }
                 }
@@ -38,18 +70,29 @@ struct DashboardView: View {
             }
             .padding()
         }
-        .background(Color(UIColor.systemGroupedBackground))
+        .background(Color(.systemGroupedBackground))
         .navigationTitle("Tableau de bord")
+    }
+    
+    // Helper to get chart data
+    func getRoleData() -> [RoleCount] {
+        let roles = appData.collaborators.map { $0.role }
+        let uniqueRoles = Array(Set(roles))
+        return uniqueRoles.map { role in
+            RoleCount(role: role, count: roles.filter { $0 == role }.count)
+        }
     }
 }
 
-// ... HeaderView, StatCard, ScheduleRow remain the same as before ...
-// I'll include them to make the file complete as I'm overwriting it.
+struct RoleCount {
+    let role: String
+    let count: Int
+}
 
 struct HeaderView: View {
     var body: some View {
         HStack {
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text("Bonjour,")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
@@ -60,8 +103,10 @@ struct HeaderView: View {
             Spacer()
             Image(systemName: "person.crop.circle.fill")
                 .resizable()
-                .frame(width: 40, height: 40)
-                .foregroundColor(.accentColor)
+                .frame(width: 45, height: 45)
+                .foregroundStyle(.linearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
+                .background(Circle().fill(Color(.secondarySystemGroupedBackground)))
+                .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
         }
         .padding(.vertical, 10)
     }
@@ -71,27 +116,35 @@ struct StatCard: View {
     let title: String
     let value: String
     let icon: String
-    let color: Color
+    let gradient: LinearGradient
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: icon)
-                    .foregroundColor(color)
+                    .foregroundColor(.white)
                     .font(.title2)
+                    .padding(8)
+                    .background(Circle().fill(Color.white.opacity(0.2)))
                 Spacer()
             }
+            
+            Spacer()
+            
             Text(value)
-                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .font(.system(size: 32, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+            
             Text(title)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .fontWeight(.medium)
+                .foregroundColor(.white.opacity(0.8))
         }
         .padding()
-        .frame(maxWidth: .infinity)
-        .background(Color(UIColor.secondarySystemGroupedBackground))
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+        .frame(height: 140)
+        .background(gradient)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
     }
 }
 
@@ -100,26 +153,42 @@ struct ScheduleRow: View {
     let collaborator: Collaborator
     
     var body: some View {
-        HStack {
-            VStack(alignment: .leading) {
+        HStack(spacing: 15) {
+            Circle()
+                .fill(Color.blue.opacity(0.1))
+                .frame(width: 40, height: 40)
+                .overlay(
+                    Image(systemName: "person.fill")
+                        .foregroundColor(.blue)
+                )
+            
+            VStack(alignment: .leading, spacing: 4) {
                 Text(collaborator.fullName)
                     .fontWeight(.semibold)
                 Text(collaborator.role)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
+            
             Spacer()
-            VStack(alignment: .trailing) {
+            
+            VStack(alignment: .trailing, spacing: 4) {
                 Text(formatTime(schedule.startTime))
                     .fontWeight(.bold)
+                    .foregroundColor(.primary)
                 Text(formatTime(schedule.endTime))
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(Color.blue.opacity(0.05))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
         }
         .padding()
-        .background(Color(UIColor.secondarySystemGroupedBackground))
-        .cornerRadius(10)
+        .background(Color(.secondarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .shadow(color: Color.black.opacity(0.03), radius: 5, x: 0, y: 2)
     }
     
     func formatTime(_ date: Date) -> String {
@@ -131,9 +200,7 @@ struct ScheduleRow: View {
 
 struct DashboardView_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationView {
-            DashboardView()
-                .environmentObject(AppData())
-        }
+        DashboardView()
+            .environmentObject(AppData())
     }
 }

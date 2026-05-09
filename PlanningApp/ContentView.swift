@@ -3,41 +3,42 @@ import SwiftUI
 struct ContentView: View {
     var body: some View {
         TabView {
-            NavigationView {
+            NavigationStack {
                 DashboardView()
             }
             .tabItem {
                 Label("Bord", systemImage: "square.grid.2x2.fill")
             }
             
-            NavigationView {
+            NavigationStack {
                 ScheduleView()
             }
             .tabItem {
                 Label("Planning", systemImage: "calendar")
             }
             
-            NavigationView {
+            NavigationStack {
                 MessagesListView()
             }
             .tabItem {
                 Label("Messages", systemImage: "message.fill")
             }
             
-            NavigationView {
+            NavigationStack {
                 TeamListView()
             }
             .tabItem {
                 Label("Équipes", systemImage: "person.3.fill")
             }
             
-            NavigationView {
+            NavigationStack {
                 SettingsView()
             }
             .tabItem {
                 Label("Paramètres", systemImage: "gearshape.fill")
             }
         }
+        .tint(.blue) // Modern tint color for the tab bar
     }
 }
 
