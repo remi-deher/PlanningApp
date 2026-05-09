@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct AddMessageView: View {
-    @EnvironmentObject var appData: AppData
+    @Environment(AppData.self) private var appData
     @Environment(\.dismiss) var dismiss
     
     @State private var selectedSenderId: UUID?
@@ -19,7 +19,6 @@ struct AddMessageView: View {
                 }
                 .pickerStyle(.segmented)
             }
-            
             Section(header: Text("Expéditeur")) {
                 Picker("De", selection: $selectedSenderId) {
                     Text("Sélectionner").tag(UUID?.none)
@@ -28,7 +27,6 @@ struct AddMessageView: View {
                     }
                 }
             }
-            
             if isTeamMessage {
                 Section(header: Text("Équipe Destinataire")) {
                     Picker("À l'équipe", selection: $selectedTeamId) {
@@ -48,44 +46,35 @@ struct AddMessageView: View {
                     }
                 }
             }
-            
             Section(header: Text("Message")) {
                 TextField("Contenu du message", text: $content)
             }
-            
             Button(action: {
                 if let senderId = selectedSenderId {
-                    let newMessage: Message
                     if isTeamMessage, let teamId = selectedTeamId {
-                        newMessage = Message(senderId: senderId, teamId: teamId, content: content, timestamp: Date())
-                        appData.addMessage(newMessage)
+                        appData.addMessage(Message(senderId: senderId, teamId: teamId, content: content, timestamp: Date()))
                         dismiss()
                     } else if !isTeamMessage, let receiverId = selectedReceiverId {
-                        newMessage = Message(senderId: senderId, receiverId: receiverId, content: content, timestamp: Date())
-                        appData.addMessage(newMessage)
+                        appData.addMessage(Message(senderId: senderId, receiverId: receiverId, content: content, timestamp: Date()))
                         dismiss()
                     }
                 }
             }) {
-                Text("Simuler l'envoi")
-                    .frame(maxWidth: .infinity)
-                    .fontWeight(.bold)
+                Text("Simuler l'envoi").frame(maxWidth: .infinity).fontWeight(.bold)
             }
-            .disabled(selectedSenderId == nil || 
-                      (isTeamMessage && selectedTeamId == nil) || 
-                      (!isTeamMessage && selectedReceiverId == nil) || 
-                      content.isEmpty || 
-                      (!isTeamMessage && selectedSenderId == selectedReceiverId))
+            .disabled(
+                selectedSenderId == nil ||
+                (isTeamMessage && selectedTeamId == nil) ||
+                (!isTeamMessage && selectedReceiverId == nil) ||
+                content.isEmpty ||
+                (!isTeamMessage && selectedSenderId == selectedReceiverId)
+            )
         }
         .navigationTitle("Simuler un message")
     }
 }
 
-struct AddMessageView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationView {
-            AddMessageView()
-                .environmentObject(AppData())
-        }
-    }
+#Preview {
+    NavigationStack { AddMessageView() }
+        .environment(AppData())
 }

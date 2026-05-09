@@ -1,32 +1,27 @@
 import SwiftUI
 
 struct ScheduleView: View {
-    @EnvironmentObject var appData: AppData
+    @Environment(AppData.self) private var appData
     @State private var selectedDate = Date()
     
     var body: some View {
         VStack(spacing: 0) {
-            // Horizontal Date Picker (Mock)
+            // Horizontal Date Picker
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 15) {
                     ForEach(0..<7) { day in
                         let date = Calendar.current.date(byAdding: .day, value: day, to: Date()) ?? Date()
                         DateCard(date: date, isSelected: Calendar.current.isDate(date, inSameDayAs: selectedDate))
-                            .onTapGesture {
-                                selectedDate = date
-                            }
+                            .onTapGesture { selectedDate = date }
                     }
                 }
                 .padding()
             }
             .background(Color(.secondarySystemGroupedBackground))
             
-            // Schedule List
             ScrollView {
                 LazyVStack(spacing: 15) {
-                    let filteredSchedules = appData.schedules // In a real app, filter by selectedDate
-                    
-                    if filteredSchedules.isEmpty {
+                    if appData.schedules.isEmpty {
                         ContentUnavailableView(
                             "Aucun shift prévu",
                             systemImage: "calendar.badge.plus",
@@ -34,7 +29,7 @@ struct ScheduleView: View {
                         )
                         .padding(.top, 40)
                     } else {
-                        ForEach(filteredSchedules) { schedule in
+                        ForEach(appData.schedules) { schedule in
                             if let collaborator = appData.collaborators.first(where: { $0.id == schedule.collaboratorId }) {
                                 ScheduleCard(schedule: schedule, collaborator: collaborator)
                             }
@@ -56,31 +51,28 @@ struct DateCard: View {
     var body: some View {
         VStack(spacing: 4) {
             Text(formatDay(date))
-                .font(.caption2)
-                .fontWeight(.bold)
+                .font(.caption2).fontWeight(.bold)
                 .foregroundColor(isSelected ? .white : .secondary)
-            
             Text(formatDateNumber(date))
-                .font(.title3)
-                .fontWeight(.bold)
+                .font(.title3).fontWeight(.bold)
                 .foregroundColor(isSelected ? .white : .primary)
         }
         .frame(width: 55, height: 70)
-        .background(isSelected ? LinearGradient(colors: [.blue, .purple], startPoint: .top, endPoint: .bottom) : LinearGradient(colors: [Color(.systemBackground)], startPoint: .top, endPoint: .bottom))
+        .background(isSelected ?
+            LinearGradient(colors: [.blue, .purple], startPoint: .top, endPoint: .bottom) :
+            LinearGradient(colors: [Color(.systemBackground)], startPoint: .top, endPoint: .bottom)
+        )
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .shadow(color: Color.black.opacity(isSelected ? 0.15 : 0.02), radius: 5, x: 0, y: 3)
     }
     
     func formatDay(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEE"
-        return formatter.string(from: date).uppercased()
+        let f = DateFormatter(); f.dateFormat = "EEE"
+        return f.string(from: date).uppercased()
     }
-    
     func formatDateNumber(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "d"
-        return formatter.string(from: date)
+        let f = DateFormatter(); f.dateFormat = "d"
+        return f.string(from: date)
     }
 }
 
@@ -90,7 +82,6 @@ struct ScheduleCard: View {
     
     var body: some View {
         HStack(spacing: 0) {
-            // Color indicator
             Rectangle()
                 .fill(LinearGradient(colors: [.orange, .red], startPoint: .top, endPoint: .bottom))
                 .frame(width: 6)
@@ -98,37 +89,23 @@ struct ScheduleCard: View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(collaborator.fullName)
-                            .font(.headline)
-                        Text(collaborator.role)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        Text(collaborator.fullName).font(.headline)
+                        Text(collaborator.role).font(.caption).foregroundColor(.secondary)
                     }
-                    
                     Spacer()
-                    
                     Text(formatDate(schedule.startTime))
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
+                        .font(.caption2).foregroundColor(.secondary)
+                        .padding(.horizontal, 8).padding(.vertical, 4)
                         .background(Color(.systemBackground))
                         .clipShape(Capsule())
                 }
-                
                 HStack {
                     Label(formatTime(schedule.startTime) + " - " + formatTime(schedule.endTime), systemImage: "clock")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.primary)
-                    
+                        .font(.subheadline).fontWeight(.semibold)
                     Spacer()
-                    
                     if let notes = schedule.notes {
-                        Text(notes)
-                            .font(.caption2)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
+                        Text(notes).font(.caption2)
+                            .padding(.horizontal, 8).padding(.vertical, 4)
                             .background(Color.blue.opacity(0.1))
                             .foregroundColor(.blue)
                             .clipShape(Capsule())
@@ -143,23 +120,16 @@ struct ScheduleCard: View {
     }
     
     func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "dd MMM"
-        return formatter.string(from: date)
+        let f = DateFormatter(); f.dateFormat = "dd MMM"
+        return f.string(from: date)
     }
-    
     func formatTime(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        return formatter.string(from: date)
+        let f = DateFormatter(); f.dateFormat = "HH:mm"
+        return f.string(from: date)
     }
 }
 
-struct ScheduleView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationView {
-            ScheduleView()
-                .environmentObject(AppData())
-        }
-    }
+#Preview {
+    NavigationStack { ScheduleView() }
+        .environment(AppData())
 }

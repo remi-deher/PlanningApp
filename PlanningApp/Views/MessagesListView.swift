@@ -1,15 +1,13 @@
 import SwiftUI
 
 struct MessagesListView: View {
-    @EnvironmentObject var appData: AppData
+    @Environment(AppData.self) private var appData
     @State private var searchText = ""
     
     var body: some View {
         VStack(spacing: 0) {
-            // Search Bar
             HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(.secondary)
+                Image(systemName: "magnifyingglass").foregroundColor(.secondary)
                 TextField("Rechercher une conversation...", text: $searchText)
                     .textFieldStyle(PlainTextFieldStyle())
             }
@@ -18,19 +16,13 @@ struct MessagesListView: View {
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .padding()
             
-            // Conversations List
             ScrollView {
                 LazyVStack(spacing: 12) {
                     let conversations = getFilteredConversations()
-                    
                     if conversations.isEmpty {
                         if searchText.isEmpty {
-                            ContentUnavailableView(
-                                "Aucune conversation",
-                                systemImage: "message.fill",
-                                description: Text("Les messages apparaîtront ici.")
-                            )
-                            .padding(.top, 40)
+                            ContentUnavailableView("Aucune conversation", systemImage: "message.fill", description: Text("Les messages apparaîtront ici."))
+                                .padding(.top, 40)
                         } else {
                             ContentUnavailableView.search(text: searchText)
                                 .padding(.top, 40)
@@ -62,7 +54,6 @@ struct MessagesListView: View {
         }
     }
     
-    // Helper to group messages into conversations
     struct Conversation: Identifiable {
         let id: String
         let title: String
@@ -77,45 +68,26 @@ struct MessagesListView: View {
     
     func getFilteredConversations() -> [Conversation] {
         let all = getConversations()
-        if searchText.isEmpty {
-            return all
-        }
+        if searchText.isEmpty { return all }
         return all.filter { $0.title.localizedCaseInsensitiveContains(searchText) }
     }
     
     func getConversations() -> [Conversation] {
         var conversations: [String: Conversation] = [:]
-        
         for message in appData.messages {
             if let teamId = message.teamId, let team = appData.teams.first(where: { $0.id == teamId }) {
-                // Team Conversation
                 let key = teamId.uuidString
-                if let existing = conversations[key] {
-                    if let existingMsg = existing.lastMessage, message.timestamp > existingMsg.timestamp {
-                        conversations[key] = Conversation(id: key, title: team.name, icon: "person.3.fill", lastMessage: message, isTeam: true, user1: nil, user2: nil, team: team, color: .blue)
-                    }
-                } else {
-                    conversations[key] = Conversation(id: key, title: team.name, icon: "person.3.fill", lastMessage: message, isTeam: true, user1: nil, user2: nil, team: team, color: .blue)
-                }
+                if let existing = conversations[key], let existingMsg = existing.lastMessage, message.timestamp <= existingMsg.timestamp { continue }
+                conversations[key] = Conversation(id: key, title: team.name, icon: "person.3.fill", lastMessage: message, isTeam: true, user1: nil, user2: nil, team: team, color: .blue)
             } else if let receiverId = message.receiverId,
                       let user1 = appData.collaborators.first(where: { $0.id == message.senderId }),
                       let user2 = appData.collaborators.first(where: { $0.id == receiverId }) {
-                // Private Conversation
                 let ids = [user1.id.uuidString, user2.id.uuidString].sorted()
                 let key = ids.joined(separator: "-")
-                
-                let title = "\(user1.fullName) & \(user2.fullName)"
-                
-                if let existing = conversations[key] {
-                    if let existingMsg = existing.lastMessage, message.timestamp > existingMsg.timestamp {
-                        conversations[key] = Conversation(id: key, title: title, icon: "person.fill", lastMessage: message, isTeam: false, user1: user1, user2: user2, team: nil, color: .orange)
-                    }
-                } else {
-                    conversations[key] = Conversation(id: key, title: title, icon: "person.fill", lastMessage: message, isTeam: false, user1: user1, user2: user2, team: nil, color: .orange)
-                }
+                if let existing = conversations[key], let existingMsg = existing.lastMessage, message.timestamp <= existingMsg.timestamp { continue }
+                conversations[key] = Conversation(id: key, title: "\(user1.fullName) & \(user2.fullName)", icon: "person.fill", lastMessage: message, isTeam: false, user1: user1, user2: user2, team: nil, color: .orange)
             }
         }
-        
         return Array(conversations.values).sorted { ($0.lastMessage?.timestamp ?? Date()) > ($1.lastMessage?.timestamp ?? Date()) }
     }
 }
@@ -125,47 +97,26 @@ struct ConversationRow: View {
     
     var body: some View {
         HStack(spacing: 15) {
-            // Avatar
             Circle()
                 .fill(conv.color.opacity(0.1))
                 .frame(width: 50, height: 50)
-                .overlay(
-                    Image(systemName: conv.icon)
-                        .foregroundColor(conv.color)
-                        .font(.title3)
-                )
+                .overlay(Image(systemName: conv.icon).foregroundColor(conv.color).font(.title3))
             
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text(conv.title)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.primary)
-                    
+                    Text(conv.title).fontWeight(.semibold).foregroundColor(.primary)
                     if conv.isTeam {
-                        Text("Équipe")
-                            .font(.caption2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.blue)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color.blue.opacity(0.1))
-                            .clipShape(Capsule())
+                        Text("Équipe").font(.caption2).fontWeight(.bold)
+                            .foregroundColor(.blue).padding(.horizontal, 6).padding(.vertical, 2)
+                            .background(Color.blue.opacity(0.1)).clipShape(Capsule())
                     }
-                    
                     Spacer()
-                    
                     if let lastMessage = conv.lastMessage {
-                        Text(formatDate(lastMessage.timestamp))
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
+                        Text(formatDate(lastMessage.timestamp)).font(.caption2).foregroundColor(.secondary)
                     }
                 }
-                
                 if let lastMessage = conv.lastMessage {
-                    Text(lastMessage.content)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(2)
+                    Text(lastMessage.content).font(.caption).foregroundColor(.secondary).lineLimit(2)
                 }
             }
         }
@@ -176,21 +127,13 @@ struct ConversationRow: View {
     }
     
     func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        if Calendar.current.isDateInToday(date) {
-            formatter.dateFormat = "HH:mm"
-        } else {
-            formatter.dateFormat = "dd/MM"
-        }
-        return formatter.string(from: date)
+        let f = DateFormatter()
+        f.dateFormat = Calendar.current.isDateInToday(date) ? "HH:mm" : "dd/MM"
+        return f.string(from: date)
     }
 }
 
-struct MessagesListView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationView {
-            MessagesListView()
-                .environmentObject(AppData())
-        }
-    }
+#Preview {
+    NavigationStack { MessagesListView() }
+        .environment(AppData())
 }

@@ -1,12 +1,12 @@
 import SwiftUI
 
 struct AddScheduleView: View {
-    @EnvironmentObject var appData: AppData
+    @Environment(AppData.self) private var appData
     @Environment(\.dismiss) var dismiss
     
     @State private var selectedCollaboratorId: UUID?
     @State private var startTime: Date = Date()
-    @State private var endTime: Date = Date().addingTimeInterval(3600) // +1 hour
+    @State private var endTime: Date = Date().addingTimeInterval(3600)
     @State private var notes: String = ""
     
     var body: some View {
@@ -19,16 +19,13 @@ struct AddScheduleView: View {
                     }
                 }
             }
-            
             Section(header: Text("Horaires")) {
                 DatePicker("Début", selection: $startTime, displayedComponents: [.date, .hourAndMinute])
                 DatePicker("Fin", selection: $endTime, displayedComponents: [.date, .hourAndMinute])
             }
-            
             Section(header: Text("Notes")) {
                 TextField("Notes (facultatif)", text: $notes)
             }
-            
             Button(action: {
                 if let collaboratorId = selectedCollaboratorId {
                     let newSchedule = Schedule(collaboratorId: collaboratorId, startTime: startTime, endTime: endTime, notes: notes.isEmpty ? nil : notes)
@@ -36,9 +33,7 @@ struct AddScheduleView: View {
                     dismiss()
                 }
             }) {
-                Text("Enregistrer")
-                    .frame(maxWidth: .infinity)
-                    .fontWeight(.bold)
+                Text("Enregistrer").frame(maxWidth: .infinity).fontWeight(.bold)
             }
             .disabled(selectedCollaboratorId == nil || startTime >= endTime)
         }
@@ -46,11 +41,7 @@ struct AddScheduleView: View {
     }
 }
 
-struct AddScheduleView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationView {
-            AddScheduleView()
-                .environmentObject(AppData())
-        }
-    }
+#Preview {
+    NavigationStack { AddScheduleView() }
+        .environment(AppData())
 }

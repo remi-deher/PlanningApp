@@ -3,48 +3,38 @@ import SwiftUI
 struct ContentView: View {
     var body: some View {
         TabView {
-            NavigationStack {
-                DashboardView()
+            Tab("Bord", systemImage: "square.grid.2x2.fill") {
+                NavigationStack {
+                    DashboardView()
+                }
             }
-            .tabItem {
-                Label("Bord", systemImage: "square.grid.2x2.fill")
+            Tab("Planning", systemImage: "calendar") {
+                NavigationStack {
+                    ScheduleView()
+                }
             }
-            
-            NavigationStack {
-                ScheduleView()
+            Tab("Messages", systemImage: "message.fill") {
+                NavigationStack {
+                    MessagesListView()
+                }
             }
-            .tabItem {
-                Label("Planning", systemImage: "calendar")
+            Tab("Équipes", systemImage: "person.3.fill") {
+                NavigationStack {
+                    TeamListView()
+                }
             }
-            
-            NavigationStack {
-                MessagesListView()
-            }
-            .tabItem {
-                Label("Messages", systemImage: "message.fill")
-            }
-            
-            NavigationStack {
-                TeamListView()
-            }
-            .tabItem {
-                Label("Équipes", systemImage: "person.3.fill")
-            }
-            
-            NavigationStack {
-                SettingsView()
-            }
-            .tabItem {
-                Label("Paramètres", systemImage: "gearshape.fill")
+            Tab("Paramètres", systemImage: "gearshape.fill") {
+                NavigationStack {
+                    SettingsView()
+                }
             }
         }
-        .tint(.blue) // Modern tint color for the tab bar
+        .tabViewStyle(.sidebarAdaptable)
+        .tint(.blue)
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
-            .environmentObject(AppData())
-    }
+#Preview {
+    ContentView()
+        .environment(AppData())
 }

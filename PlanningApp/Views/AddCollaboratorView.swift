@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct AddCollaboratorView: View {
-    @EnvironmentObject var appData: AppData
+    @Environment(AppData.self) private var appData
     @Environment(\.dismiss) var dismiss
     
     @State private var firstName: String = ""
@@ -15,11 +15,9 @@ struct AddCollaboratorView: View {
                 TextField("Prénom", text: $firstName)
                 TextField("Nom", text: $lastName)
             }
-            
             Section(header: Text("Poste")) {
                 TextField("Rôle / Poste", text: $role)
             }
-            
             Section(header: Text("Équipe")) {
                 Picker("Équipe", selection: $selectedTeamId) {
                     Text("Aucune équipe").tag(UUID?.none)
@@ -28,15 +26,12 @@ struct AddCollaboratorView: View {
                     }
                 }
             }
-            
             Button(action: {
                 let newCollaborator = Collaborator(firstName: firstName, lastName: lastName, role: role, teamId: selectedTeamId)
                 appData.addCollaborator(newCollaborator)
                 dismiss()
             }) {
-                Text("Enregistrer")
-                    .frame(maxWidth: .infinity)
-                    .fontWeight(.bold)
+                Text("Enregistrer").frame(maxWidth: .infinity).fontWeight(.bold)
             }
             .disabled(firstName.isEmpty || lastName.isEmpty || role.isEmpty)
         }
@@ -44,11 +39,7 @@ struct AddCollaboratorView: View {
     }
 }
 
-struct AddCollaboratorView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationView {
-            AddCollaboratorView()
-                .environmentObject(AppData())
-        }
-    }
+#Preview {
+    NavigationStack { AddCollaboratorView() }
+        .environment(AppData())
 }

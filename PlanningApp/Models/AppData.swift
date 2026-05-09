@@ -1,13 +1,14 @@
 import Foundation
+import Observation
 
-class AppData: ObservableObject {
-    @Published var teams: [Team] = []
-    @Published var collaborators: [Collaborator] = []
-    @Published var schedules: [Schedule] = []
-    @Published var messages: [Message] = []
+@Observable
+class AppData {
+    var teams: [Team] = []
+    var collaborators: [Collaborator] = []
+    var schedules: [Schedule] = []
+    var messages: [Message] = []
     
     init() {
-        // Initialisation avec les données mockées existantes
         self.teams = Team.mockTeams
         self.collaborators = Collaborator.mockCollaborators(teams: teams)
         self.schedules = Schedule.mockSchedules(collaborators: collaborators)
