@@ -5,7 +5,7 @@ targets:
   PlanningApp:
     type: application
     platform: iOS
-    deploymentTarget: "16.0"
+    deploymentTarget: "17.0"
     sources:
       - path: PlanningApp
     info:

@@ -24,17 +24,16 @@ struct MessagesListView: View {
                     let conversations = getFilteredConversations()
                     
                     if conversations.isEmpty {
-                        VStack(spacing: 15) {
-                            Image(systemName: "message.fill")
-                                .font(.system(size: 50))
-                                .foregroundColor(.secondary.opacity(0.5))
-                                .padding(.top, 50)
-                            Text("Aucune conversation")
-                                .font(.headline)
-                                .foregroundColor(.secondary)
-                            Text("Les messages apparaîtront ici.")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary.opacity(0.8))
+                        if searchText.isEmpty {
+                            ContentUnavailableView(
+                                "Aucune conversation",
+                                systemImage: "message.fill",
+                                description: Text("Les messages apparaîtront ici.")
+                            )
+                            .padding(.top, 40)
+                        } else {
+                            ContentUnavailableView.search(text: searchText)
+                                .padding(.top, 40)
                         }
                     } else {
                         ForEach(conversations, id: \.id) { conv in
@@ -105,7 +104,6 @@ struct MessagesListView: View {
                 let ids = [user1.id.uuidString, user2.id.uuidString].sorted()
                 let key = ids.joined(separator: "-")
                 
-                // Determine title based on who is who (for simplicity, just show both names)
                 let title = "\(user1.fullName) & \(user2.fullName)"
                 
                 if let existing = conversations[key] {

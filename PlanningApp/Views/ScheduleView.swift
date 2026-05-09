@@ -27,15 +27,12 @@ struct ScheduleView: View {
                     let filteredSchedules = appData.schedules // In a real app, filter by selectedDate
                     
                     if filteredSchedules.isEmpty {
-                        VStack(spacing: 15) {
-                            Image(systemName: "calendar.badge.plus")
-                                .font(.system(size: 50))
-                                .foregroundColor(.secondary.opacity(0.5))
-                                .padding(.top, 50)
-                            Text("Aucun shift prévu")
-                                .font(.headline)
-                                .foregroundColor(.secondary)
-                        }
+                        ContentUnavailableView(
+                            "Aucun shift prévu",
+                            systemImage: "calendar.badge.plus",
+                            description: Text("Ajoutez des shifts depuis les paramètres.")
+                        )
+                        .padding(.top, 40)
                     } else {
                         ForEach(filteredSchedules) { schedule in
                             if let collaborator = appData.collaborators.first(where: { $0.id == schedule.collaboratorId }) {
