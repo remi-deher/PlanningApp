@@ -9,7 +9,7 @@ targets:
     sources:
       - path: PlanningApp
     info:
-      dict:
+      properties:
         UILaunchScreen: {}
         CFBundleDevelopmentRegion: fr
         UISupportedInterfaceOrientations:
